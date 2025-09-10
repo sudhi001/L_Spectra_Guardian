@@ -15,6 +15,7 @@ public:
     bool isSensorWorking();
     bool isObjectTooClose();
     void setAlertDistance(float distance);
+    void test();
 };
 
 #endif

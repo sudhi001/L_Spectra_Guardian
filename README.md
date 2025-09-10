@@ -299,6 +299,6 @@ For questions about this project or help with your own "L Spectra" exhibition, p
 
 ---
 
-**🌟 Good luck with your "L Spectra" exhibition presentation! 🌟**
+**🌟 Good luck to my son with the "L Spectra" exhibition presentation! 🌟**
 
 *Remember: The best part of this project isn't just the technology - it's the learning, collaboration, and joy of discovery you've shared together!*

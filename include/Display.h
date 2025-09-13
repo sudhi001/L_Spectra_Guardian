@@ -9,6 +9,8 @@
 class Display {
 private:
     Adafruit_SSD1306 display;
+    int sclPin;
+    int sdaPin;
     bool isInitialized;
     
     // Display layout constants
@@ -29,7 +31,7 @@ private:
     bool lastAlarmState;
     
 public:
-    Display();
+    Display(int scl = 5, int sda = 4);
     
     void begin();
     void test();

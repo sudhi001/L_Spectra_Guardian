@@ -50,13 +50,13 @@ MB3 Display            NodeMCU
 ┌─────────┐          ┌─────────┐
 │   VCC   │ ──────── │   3.3V   │
 │   GND   │ ──────── │   GND    │
-│   SCL   │ ──────── │   GPIO5  │ (D1) - I2C Clock
-│   SDA   │ ──────── │   GPIO4  │ (D2) - I2C Data
+│   SCL   │ ──────── │   GPIO15 │ (D8) - I2C Clock
+│   SDA   │ ──────── │   GPIO16 │ (D0) - I2C Data
 └─────────┘          └─────────┘
 
 Note: MB3 Display uses I2C communication
-- SCL (Serial Clock): GPIO5 (D1)
-- SDA (Serial Data): GPIO4 (D2)
+- SCL (Serial Clock): GPIO15 (D8)
+- SDA (Serial Data): GPIO16 (D0)
 - I2C Address: 0x3C (default)
 ```
 
@@ -77,8 +77,8 @@ HC-SR04 Sensor        NodeMCU
 ┌─────────┐          ┌─────────┐
 │   VCC   │ ──────── │   5V    │
 │   GND   │ ──────── │   GND   │
-│   Trig  │ ──────── │   GPIO0 │ (D3)
-│   Echo  │ ──────── │   GPIO16│ (D0)
+│   Trig  │ ──────── │   GPIO5 │ (D1)
+│   Echo  │ ──────── │   GPIO4 │ (D2)
 └─────────┘          └─────────┘
 ```
 
@@ -119,16 +119,16 @@ LED                   NodeMCU
 | **MB3 Display** | | | |
 | MB3 VCC | 3.3V | - | Power |
 | MB3 GND | GND | - | Ground |
-| MB3 SCL | D1 | GPIO5 | I2C Clock |
-| MB3 SDA | D2 | GPIO4 | I2C Data |
+| MB3 SCL | D8 | GPIO15 | I2C Clock |
+| MB3 SDA | D0 | GPIO16 | I2C Data |
 | **DHT11** | | | |
 | DHT11 VCC | 3.3V | - | Power |
 | DHT11 DATA | D4 | GPIO2 | Data |
 | DHT11 GND | GND | - | Ground |
 | **HC-SR04** | | | |
 | HC-SR04 VCC | 5V | - | Power |
-| HC-SR04 Trig | D3 | GPIO0 | Trigger |
-| HC-SR04 Echo | D0 | GPIO16 | Echo |
+| HC-SR04 Trig | D1 | GPIO5 | Trigger |
+| HC-SR04 Echo | D2 | GPIO4 | Echo |
 | HC-SR04 GND | GND | - | Ground |
 | **TMB12A12** | | | |
 | Buzzer (+) | D5 | GPIO14 | Signal |

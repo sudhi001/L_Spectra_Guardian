@@ -1,15 +1,16 @@
 #include "Display.h"
 
-Display::Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
-                     isInitialized(false), lastTemperature(-999), lastHumidity(-999), 
-                     lastDistance(-999), lastAlarmState(false) {
+Display::Display(int scl, int sda) : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
+                                      sclPin(scl), sdaPin(sda), isInitialized(false), 
+                                      lastTemperature(-999), lastHumidity(-999), 
+                                      lastDistance(-999), lastAlarmState(false) {
 }
 
 void Display::begin() {
     Serial.println("Initializing I2C Display...");
     
-    // Initialize I2C communication
-    Wire.begin();
+    // Initialize I2C communication with custom pins
+    Wire.begin(sdaPin, sclPin);
     
     // Initialize SSD1306 display
     if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {

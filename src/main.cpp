@@ -7,11 +7,11 @@
 #include "Display.h"
 
 TemperatureSensor tempSensor(2); // DHT11 on GPIO2
-UltrasonicSensor ultrasonicSensor(0, 16, 15.0); // HC-SR04: Trig=GPIO0(D3), Echo=GPIO16(D0), Alert=15cm
+UltrasonicSensor ultrasonicSensor(5, 4, 15.0); // HC-SR04: Trig=GPIO5(D1), Echo=GPIO4(D2), Alert=15cm
 Buzzer buzzer(14); // TMB12A12 on GPIO14(D5)
 ServoMotor servo(12); // SG90 on GPIO12(D6)
 LED led(13); // Single color LED on GPIO13(D7)
-Display display; // I2C Display: SCL=GPIO5(D1), SDA=GPIO4(D2)
+Display display(15, 16); // I2C Display: SCL=GPIO15(D8), SDA=GPIO16(D0)
 
 void setup() {
     Serial.begin(115200);
@@ -38,7 +38,7 @@ void setup() {
     servo.startContinuousRotation();
     
     // Show initial status on display
-    display.showMessage("System Ready!", TFT_GREEN);
+    display.showMessage("System Ready!");
     delay(2000);
 }
 

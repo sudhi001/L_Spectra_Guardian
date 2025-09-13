@@ -86,19 +86,19 @@ void Display::showTemperature(float temp, float humidity) {
     display.clearDisplay();
     showHeader();
     
-    // Display temperature
-    display.setTextSize(1);
+    // Display temperature prominently
+    display.setTextSize(2);
     display.setCursor(0, 15);
     char tempStr[20];
     formatFloat(temp, tempStr, 1);
-    display.print("Temp: ");
+    display.print("T:");
     display.print(tempStr);
     display.println("C");
     
-    // Display humidity
+    // Display humidity prominently
     char humStr[20];
     formatFloat(humidity, humStr, 1);
-    display.print("Humidity: ");
+    display.print("H:");
     display.print(humStr);
     display.println("%");
     
@@ -117,16 +117,16 @@ void Display::showDistance(float distance) {
     // Display temperature
     char tempStr[20];
     formatFloat(lastTemperature, tempStr, 1);
-    display.setTextSize(1);
+    display.setTextSize(2);
     display.setCursor(0, 15);
-    display.print("Temp: ");
+    display.print("T:");
     display.print(tempStr);
     display.println("C");
     
-    // Display humidity
+    // Display humidity prominently
     char humStr[20];
     formatFloat(lastHumidity, humStr, 1);
-    display.print("Humidity: ");
+    display.print("H:");
     display.print(humStr);
     display.println("%");
     
@@ -170,16 +170,16 @@ void Display::showAlarmStatus(bool alarmActive) {
     // Display temperature
     char tempStr[20];
     formatFloat(lastTemperature, tempStr, 1);
-    display.setTextSize(1);
+    display.setTextSize(2);
     display.setCursor(0, 15);
-    display.print("Temp: ");
+    display.print("T:");
     display.print(tempStr);
     display.println("C");
     
-    // Display humidity
+    // Display humidity prominently
     char humStr[20];
     formatFloat(lastHumidity, humStr, 1);
-    display.print("Humidity: ");
+    display.print("H:");
     display.print(humStr);
     display.println("%");
     
@@ -215,16 +215,16 @@ void Display::showServoStatus(float angle) {
     // Display temperature
     char tempStr[20];
     formatFloat(lastTemperature, tempStr, 1);
-    display.setTextSize(1);
+    display.setTextSize(2);
     display.setCursor(0, 15);
-    display.print("Temp: ");
+    display.print("T:");
     display.print(tempStr);
     display.println("C");
     
-    // Display humidity
+    // Display humidity prominently
     char humStr[20];
     formatFloat(lastHumidity, humStr, 1);
-    display.print("Humidity: ");
+    display.print("H:");
     display.print(humStr);
     display.println("%");
     
@@ -261,14 +261,19 @@ void Display::updateDisplay(float temp, float humidity, float distance, bool ala
     formatFloat(distance, distStr, 1);
     formatFloat(servoAngle, angleStr, 0);
     
-    display.setTextSize(1);
+    // Display temperature and humidity prominently
+    display.setTextSize(2);
     display.setCursor(0, 15);
     display.print("T:");
     display.print(tempStr);
-    display.print("C H:");
+    display.println("C");
+    
+    display.print("H:");
     display.print(humStr);
     display.println("%");
     
+    // Display other data in smaller text
+    display.setTextSize(1);
     display.print("D:");
     display.print(distStr);
     display.print("cm S:");

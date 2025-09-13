@@ -1,43 +1,38 @@
 #include "Display.h"
 
-Display::Display(int cs, int dc, int rst, int led) 
-    : csPin(cs), dcPin(dc), rstPin(rst), ledPin(led), isInitialized(false),
-      lastTemperature(-999), lastHumidity(-999), lastDistance(-999), lastAlarmState(false) {
-    
-    // Initialize colors (using 16-bit RGB565 format)
-    backgroundColor = TFT_BLACK;
-    textColor = TFT_WHITE;
-    headerColor = TFT_BLUE;
-    alarmColor = TFT_RED;
+Display::Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
+                     isInitialized(false), lastTemperature(-999), lastHumidity(-999), 
+                     lastDistance(-999), lastAlarmState(false) {
 }
 
 void Display::begin() {
-    Serial.println("Initializing MB3 Display...");
+    Serial.println("Initializing I2C Display...");
     
-    // Initialize TFT display
-    tft.init();
-    tft.setRotation(1); // Landscape orientation
+    // Initialize I2C communication
+    Wire.begin();
     
-    // Set initial colors
-    tft.fillScreen(backgroundColor);
+    // Initialize SSD1306 display
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+        Serial.println("SSD1306 allocation failed!");
+        return;
+    }
     
-    // Initialize backlight control pin
-    pinMode(ledPin, OUTPUT);
-    digitalWrite(ledPin, HIGH); // Turn on backlight
+    // Clear the buffer
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
     
     // Show startup screen
-    showHeader();
-    showMessage("L Spectra Guardian", TFT_GREEN);
+    display.setCursor(0, 0);
+    display.println("L Spectra Guardian");
+    display.println("Initializing...");
+    display.display();
     delay(2000);
-    
-    // Clear and show main interface
-    clear();
-    showHeader();
     
     isInitialized = true;
     lastUpdate = millis();
     
-    Serial.println("MB3 Display initialized successfully!");
+    Serial.println("I2C Display initialized successfully!");
 }
 
 void Display::test() {
@@ -46,29 +41,20 @@ void Display::test() {
         return;
     }
     
-    Serial.println("Testing MB3 Display...");
+    Serial.println("Testing I2C Display...");
     
-    // Test different colors
-    tft.fillScreen(TFT_RED);
-    delay(500);
-    tft.fillScreen(TFT_GREEN);
-    delay(500);
-    tft.fillScreen(TFT_BLUE);
-    delay(500);
-    tft.fillScreen(TFT_YELLOW);
-    delay(500);
-    tft.fillScreen(TFT_MAGENTA);
-    delay(500);
-    tft.fillScreen(TFT_CYAN);
-    delay(500);
-    
-    // Test text
-    tft.fillScreen(backgroundColor);
-    tft.setTextColor(TFT_WHITE);
-    tft.setTextSize(2);
-    tft.drawString("Display Test", 50, 50);
-    tft.setTextSize(1);
-    tft.drawString("All colors working!", 50, 100);
+    // Test different text sizes
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.println("Display Test");
+    display.setTextSize(2);
+    display.setCursor(0, 20);
+    display.println("Size 2");
+    display.setTextSize(1);
+    display.setCursor(0, 45);
+    display.println("All working!");
+    display.display();
     
     delay(2000);
     
@@ -80,51 +66,43 @@ void Display::test() {
 }
 
 void Display::clear() {
-    tft.fillScreen(backgroundColor);
+    display.clearDisplay();
+    display.display();
 }
 
 void Display::showHeader() {
-    // Draw header background
-    tft.fillRect(0, 0, tft.width(), HEADER_HEIGHT, headerColor);
-    
-    // Draw title
-    tft.setTextColor(TFT_WHITE);
-    tft.setTextSize(2);
-    tft.drawString("L Spectra Guardian", MARGIN, 5);
-    
-    // Draw separator line
-    tft.drawLine(0, HEADER_HEIGHT, tft.width(), HEADER_HEIGHT, TFT_WHITE);
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 0);
+    display.println("L Spectra Guardian");
+    display.drawLine(0, 10, SCREEN_WIDTH, 10, SSD1306_WHITE);
+    display.display();
 }
 
 void Display::showTemperature(float temp, float humidity) {
     if (temp == lastTemperature && humidity == lastHumidity) return;
     
-    int y = HEADER_HEIGHT + MARGIN;
-    
-    // Clear previous temperature area
-    tft.fillRect(0, y, tft.width(), LINE_HEIGHT * 2, backgroundColor);
-    
-    // Draw temperature icon
-    drawSensorIcon(MARGIN, y, 0); // Temperature icon
+    display.clearDisplay();
+    showHeader();
     
     // Display temperature
-    tft.setTextColor(TFT_CYAN);
-    tft.setTextSize(2);
+    display.setTextSize(1);
+    display.setCursor(0, 15);
     char tempStr[20];
     formatFloat(temp, tempStr, 1);
-    tft.drawString("Temp: ", MARGIN + 30, y);
-    tft.drawString(tempStr, MARGIN + 100, y);
-    tft.drawString("C", MARGIN + 180, y);
+    display.print("Temp: ");
+    display.print(tempStr);
+    display.println("C");
     
     // Display humidity
-    y += LINE_HEIGHT;
-    tft.setTextColor(TFT_BLUE);
-    tft.setTextSize(2);
     char humStr[20];
     formatFloat(humidity, humStr, 1);
-    tft.drawString("Humidity: ", MARGIN + 30, y);
-    tft.drawString(humStr, MARGIN + 120, y);
-    tft.drawString("%", MARGIN + 200, y);
+    display.print("Humidity: ");
+    display.print(humStr);
+    display.println("%");
+    
+    display.display();
     
     lastTemperature = temp;
     lastHumidity = humidity;
@@ -133,39 +111,52 @@ void Display::showTemperature(float temp, float humidity) {
 void Display::showDistance(float distance) {
     if (distance == lastDistance) return;
     
-    int y = HEADER_HEIGHT + MARGIN + (LINE_HEIGHT * 2) + MARGIN;
+    display.clearDisplay();
+    showHeader();
     
-    // Clear previous distance area
-    tft.fillRect(0, y, tft.width(), LINE_HEIGHT, backgroundColor);
+    // Display temperature
+    char tempStr[20];
+    formatFloat(lastTemperature, tempStr, 1);
+    display.setTextSize(1);
+    display.setCursor(0, 15);
+    display.print("Temp: ");
+    display.print(tempStr);
+    display.println("C");
     
-    // Draw distance icon
-    drawSensorIcon(MARGIN, y, 1); // Distance icon
+    // Display humidity
+    char humStr[20];
+    formatFloat(lastHumidity, humStr, 1);
+    display.print("Humidity: ");
+    display.print(humStr);
+    display.println("%");
     
     // Display distance
-    tft.setTextColor(TFT_YELLOW);
-    tft.setTextSize(2);
     char distStr[20];
     formatFloat(distance, distStr, 1);
-    tft.drawString("Distance: ", MARGIN + 30, y);
-    tft.drawString(distStr, MARGIN + 120, y);
-    tft.drawString("cm", MARGIN + 200, y);
+    display.print("Distance: ");
+    display.print(distStr);
+    display.println("cm");
     
-    // Draw progress bar for distance visualization
-    int barWidth = 200;
-    int barHeight = 15;
-    int barX = MARGIN + 30;
-    int barY = y + 20;
+    // Draw simple progress bar for distance
+    int barWidth = 100;
+    int barHeight = 8;
+    int barX = 0;
+    int barY = 50;
     
     // Background bar
-    tft.fillRect(barX, barY, barWidth, barHeight, TFT_DARKGREY);
+    display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
     
-    // Distance bar (green for safe, yellow for warning, red for danger)
-    uint16_t barColor = TFT_GREEN;
-    if (distance < 30) barColor = TFT_YELLOW;
-    if (distance < 15) barColor = TFT_RED;
+    // Distance bar (green for safe, red for danger)
+    int progress = map(constrain(distance, 0, 100), 0, 100, 0, barWidth - 2);
+    if (distance < 15) {
+        // Red for danger
+        display.fillRect(barX + 1, barY + 1, progress, barHeight - 2, SSD1306_WHITE);
+    } else {
+        // White for safe
+        display.fillRect(barX + 1, barY + 1, progress, barHeight - 2, SSD1306_WHITE);
+    }
     
-    int progress = map(constrain(distance, 0, 100), 0, 100, 0, barWidth);
-    tft.fillRect(barX, barY, progress, barHeight, barColor);
+    display.display();
     
     lastDistance = distance;
 }
@@ -173,57 +164,85 @@ void Display::showDistance(float distance) {
 void Display::showAlarmStatus(bool alarmActive) {
     if (alarmActive == lastAlarmState) return;
     
-    int y = HEADER_HEIGHT + MARGIN + (LINE_HEIGHT * 3) + MARGIN;
+    display.clearDisplay();
+    showHeader();
     
-    // Clear previous alarm area
-    tft.fillRect(0, y, tft.width(), LINE_HEIGHT, backgroundColor);
+    // Display temperature
+    char tempStr[20];
+    formatFloat(lastTemperature, tempStr, 1);
+    display.setTextSize(1);
+    display.setCursor(0, 15);
+    display.print("Temp: ");
+    display.print(tempStr);
+    display.println("C");
     
-    // Draw alarm indicator
-    drawAlarmIndicator(alarmActive);
+    // Display humidity
+    char humStr[20];
+    formatFloat(lastHumidity, humStr, 1);
+    display.print("Humidity: ");
+    display.print(humStr);
+    display.println("%");
+    
+    // Display distance
+    char distStr[20];
+    formatFloat(lastDistance, distStr, 1);
+    display.print("Distance: ");
+    display.print(distStr);
+    display.println("cm");
     
     // Display alarm status
-    tft.setTextSize(2);
     if (alarmActive) {
-        tft.setTextColor(alarmColor);
-        tft.drawString("ALARM: OBJECT TOO CLOSE!", MARGIN + 30, y);
+        display.setTextSize(2);
+        display.setCursor(0, 40);
+        display.println("ALARM!");
+        display.setTextSize(1);
+        display.println("Too Close!");
     } else {
-        tft.setTextColor(TFT_GREEN);
-        tft.drawString("Status: SAFE", MARGIN + 30, y);
+        display.setTextSize(1);
+        display.setCursor(0, 40);
+        display.println("Status: SAFE");
     }
+    
+    display.display();
     
     lastAlarmState = alarmActive;
 }
 
 void Display::showServoStatus(float angle) {
-    int y = HEADER_HEIGHT + MARGIN + (LINE_HEIGHT * 4) + MARGIN;
+    display.clearDisplay();
+    showHeader();
     
-    // Clear previous servo area
-    tft.fillRect(0, y, tft.width(), LINE_HEIGHT, backgroundColor);
+    // Display temperature
+    char tempStr[20];
+    formatFloat(lastTemperature, tempStr, 1);
+    display.setTextSize(1);
+    display.setCursor(0, 15);
+    display.print("Temp: ");
+    display.print(tempStr);
+    display.println("C");
     
-    // Draw servo icon
-    drawSensorIcon(MARGIN, y, 2); // Servo icon
+    // Display humidity
+    char humStr[20];
+    formatFloat(lastHumidity, humStr, 1);
+    display.print("Humidity: ");
+    display.print(humStr);
+    display.println("%");
+    
+    // Display distance
+    char distStr[20];
+    formatFloat(lastDistance, distStr, 1);
+    display.print("Distance: ");
+    display.print(distStr);
+    display.println("cm");
     
     // Display servo angle
-    tft.setTextColor(TFT_MAGENTA);
-    tft.setTextSize(2);
     char angleStr[20];
     formatFloat(angle, angleStr, 0);
-    tft.drawString("Servo: ", MARGIN + 30, y);
-    tft.drawString(angleStr, MARGIN + 100, y);
-    tft.drawString("deg", MARGIN + 150, y);
+    display.print("Servo: ");
+    display.print(angleStr);
+    display.println("deg");
     
-    // Draw servo position indicator
-    int indicatorWidth = 100;
-    int indicatorHeight = 10;
-    int indicatorX = MARGIN + 200;
-    int indicatorY = y + 5;
-    
-    // Background
-    tft.fillRect(indicatorX, indicatorY, indicatorWidth, indicatorHeight, TFT_DARKGREY);
-    
-    // Position indicator
-    int position = map(constrain(angle, 0, 180), 0, 180, 0, indicatorWidth);
-    tft.fillRect(indicatorX, indicatorY, position, indicatorHeight, TFT_MAGENTA);
+    display.display();
 }
 
 void Display::updateDisplay(float temp, float humidity, float distance, bool alarmActive, float servoAngle) {
@@ -232,68 +251,74 @@ void Display::updateDisplay(float temp, float humidity, float distance, bool ala
     // Only update if enough time has passed
     if (millis() - lastUpdate < UPDATE_INTERVAL) return;
     
-    showTemperature(temp, humidity);
-    showDistance(distance);
-    showAlarmStatus(alarmActive);
-    showServoStatus(servoAngle);
+    display.clearDisplay();
+    showHeader();
+    
+    // Display all sensor data
+    char tempStr[20], humStr[20], distStr[20], angleStr[20];
+    formatFloat(temp, tempStr, 1);
+    formatFloat(humidity, humStr, 1);
+    formatFloat(distance, distStr, 1);
+    formatFloat(servoAngle, angleStr, 0);
+    
+    display.setTextSize(1);
+    display.setCursor(0, 15);
+    display.print("T:");
+    display.print(tempStr);
+    display.print("C H:");
+    display.print(humStr);
+    display.println("%");
+    
+    display.print("D:");
+    display.print(distStr);
+    display.print("cm S:");
+    display.print(angleStr);
+    display.println("deg");
+    
+    // Show alarm status
+    if (alarmActive) {
+        display.setTextSize(2);
+        display.setCursor(0, 40);
+        display.println("ALARM!");
+    } else {
+        display.setTextSize(1);
+        display.setCursor(0, 40);
+        display.println("SAFE");
+    }
+    
+    display.display();
     
     lastUpdate = millis();
 }
 
-void Display::setBrightness(int brightness) {
-    // Control backlight brightness (0-255)
-    brightness = constrain(brightness, 0, 255);
-    analogWrite(ledPin, brightness);
+void Display::showMessage(const char* message) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, SCREEN_HEIGHT / 2);
+    display.println(message);
+    display.display();
 }
 
-void Display::showMessage(const char* message, int color) {
-    tft.setTextColor(color);
-    tft.setTextSize(2);
-    tft.drawString(message, MARGIN, tft.height() / 2);
-}
-
-void Display::drawProgressBar(int x, int y, int width, int height, int progress, uint16_t color) {
+void Display::drawProgressBar(int x, int y, int width, int height, int progress) {
     // Background
-    tft.fillRect(x, y, width, height, TFT_DARKGREY);
+    display.drawRect(x, y, width, height, SSD1306_WHITE);
     
     // Progress
     progress = constrain(progress, 0, 100);
-    int progressWidth = (progress * width) / 100;
-    tft.fillRect(x, y, progressWidth, height, color);
-    
-    // Border
-    tft.drawRect(x, y, width, height, TFT_WHITE);
+    int progressWidth = (progress * (width - 2)) / 100;
+    display.fillRect(x + 1, y + 1, progressWidth, height - 2, SSD1306_WHITE);
 }
 
 void Display::drawAlarmIndicator(bool active) {
-    int x = MARGIN;
-    int y = HEADER_HEIGHT + MARGIN + (LINE_HEIGHT * 3) + MARGIN;
-    
     if (active) {
-        // Draw blinking alarm icon
-        tft.fillCircle(x + 10, y + 10, 8, alarmColor);
-        tft.fillCircle(x + 10, y + 10, 5, TFT_WHITE);
+        display.setTextSize(2);
+        display.setCursor(0, 40);
+        display.println("ALARM!");
     } else {
-        // Draw safe icon
-        tft.fillCircle(x + 10, y + 10, 8, TFT_GREEN);
-        tft.fillCircle(x + 10, y + 10, 5, TFT_WHITE);
-    }
-}
-
-void Display::drawSensorIcon(int x, int y, int iconType) {
-    switch (iconType) {
-        case 0: // Temperature icon
-            tft.fillCircle(x + 10, y + 10, 8, TFT_CYAN);
-            tft.drawString("T", x + 6, y + 3);
-            break;
-        case 1: // Distance icon
-            tft.fillRect(x + 5, y + 5, 15, 10, TFT_YELLOW);
-            tft.drawString("D", x + 8, y + 3);
-            break;
-        case 2: // Servo icon
-            tft.fillRect(x + 5, y + 5, 15, 10, TFT_MAGENTA);
-            tft.drawString("S", x + 8, y + 3);
-            break;
+        display.setTextSize(1);
+        display.setCursor(0, 40);
+        display.println("SAFE");
     }
 }
 

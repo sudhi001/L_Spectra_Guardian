@@ -14,7 +14,7 @@ This project was developed as a collaborative effort between a father and his UK
 
 ## 🚀 Features
 
-- **📺 Visual Display** - Robocraze MB3 3.5" TFT touch screen (480x320) with real-time sensor data visualization
+- **📺 Visual Display** - Robocraze MB3 I2C OLED display (128x64) with real-time sensor data visualization
 - **🌡️ Temperature & Humidity Monitoring** - DHT11 sensor keeps track of environmental conditions
 - **📏 Proximity Detection** - HC-SR04 ultrasonic sensor with 15cm alert threshold for safety
 - **🔊 Audio Alerts** - TMB12A12 buzzer with proximity warnings (great for demonstrations!)
@@ -28,7 +28,7 @@ This project was developed as a collaborative effort between a father and his UK
 
 ### Components
 - **ESP8266 NodeMCU v3** (Main controller)
-- **Robocraze MB3 Display** (3.5" TFT Touch Screen - 480x320 ILI9488)
+- **Robocraze MB3 Display** (I2C OLED Display - 128x64 SSD1306)
 - **DHT11** (Temperature & Humidity sensor)
 - **HC-SR04** (Ultrasonic distance sensor)
 - **TMB12A12** (Active buzzer)
@@ -38,33 +38,26 @@ This project was developed as a collaborative effort between a father and his UK
 - **220Ω resistor** (for LED protection)
 
 ### Power Requirements
-- **5V** for HC-SR04, SG90, and MB3 Display
-- **3.3V** for DHT11 and LED
-- **USB power** from computer or external adapter (recommended 2A+ for display)
+- **5V** for HC-SR04 and SG90
+- **3.3V** for DHT11, LED, and MB3 Display
+- **USB power** from computer or external adapter
 
 ## 🔌 Complete Sensor Setup
 
-### 1. Robocraze MB3 Display (3.5" TFT Touch Screen)
+### 1. Robocraze MB3 Display (I2C OLED Display)
 ```
 MB3 Display            NodeMCU
 ┌─────────┐          ┌─────────┐
-│   VCC   │ ──────── │   5V     │
+│   VCC   │ ──────── │   3.3V   │
 │   GND   │ ──────── │   GND    │
-│   CS    │ ──────── │   GPIO15 │ (D8)
-│   DC    │ ──────── │   GPIO0  │ (D3)
-│   RST   │ ──────── │   GPIO16 │ (D0)
-│   MOSI  │ ──────── │   GPIO13 │ (D7) - SPI MOSI
-│   SCK   │ ──────── │   GPIO14 │ (D5) - SPI SCK
-│   LED   │ ──────── │   GPIO1  │ (TX) - Backlight control
+│   SCL   │ ──────── │   GPIO5  │ (D1) - I2C Clock
+│   SDA   │ ──────── │   GPIO4  │ (D2) - I2C Data
 └─────────┘          └─────────┘
 
-Note: MB3 Display uses SPI communication
-- CS (Chip Select): GPIO15
-- DC (Data/Command): GPIO0  
-- RST (Reset): GPIO16
-- MOSI (Master Out Slave In): GPIO13
-- SCK (Serial Clock): GPIO14
-- LED (Backlight): GPIO1
+Note: MB3 Display uses I2C communication
+- SCL (Serial Clock): GPIO5 (D1)
+- SDA (Serial Data): GPIO4 (D2)
+- I2C Address: 0x3C (default)
 ```
 
 ### 2. DHT11 (Temperature & Humidity)
@@ -84,8 +77,8 @@ HC-SR04 Sensor        NodeMCU
 ┌─────────┐          ┌─────────┐
 │   VCC   │ ──────── │   5V    │
 │   GND   │ ──────── │   GND   │
-│   Trig  │ ──────── │   GPIO5 │ (D1)
-│   Echo  │ ──────── │   GPIO4 │ (D2)
+│   Trig  │ ──────── │   GPIO0 │ (D3)
+│   Echo  │ ──────── │   GPIO16│ (D0)
 └─────────┘          └─────────┘
 ```
 
@@ -124,22 +117,18 @@ LED                   NodeMCU
 | Component | Pin | GPIO | Function |
 |-----------|-----|------|----------|
 | **MB3 Display** | | | |
-| MB3 VCC | 5V | - | Power |
+| MB3 VCC | 3.3V | - | Power |
 | MB3 GND | GND | - | Ground |
-| MB3 CS | D8 | GPIO15 | Chip Select |
-| MB3 DC | D3 | GPIO0 | Data/Command |
-| MB3 RST | D0 | GPIO16 | Reset |
-| MB3 MOSI | D7 | GPIO13 | SPI MOSI |
-| MB3 SCK | D5 | GPIO14 | SPI Clock |
-| MB3 LED | TX | GPIO1 | Backlight |
+| MB3 SCL | D1 | GPIO5 | I2C Clock |
+| MB3 SDA | D2 | GPIO4 | I2C Data |
 | **DHT11** | | | |
 | DHT11 VCC | 3.3V | - | Power |
 | DHT11 DATA | D4 | GPIO2 | Data |
 | DHT11 GND | GND | - | Ground |
 | **HC-SR04** | | | |
 | HC-SR04 VCC | 5V | - | Power |
-| HC-SR04 Trig | D1 | GPIO5 | Trigger |
-| HC-SR04 Echo | D2 | GPIO4 | Echo |
+| HC-SR04 Trig | D3 | GPIO0 | Trigger |
+| HC-SR04 Echo | D0 | GPIO16 | Echo |
 | HC-SR04 GND | GND | - | Ground |
 | **TMB12A12** | | | |
 | Buzzer (+) | D5 | GPIO14 | Signal |
@@ -174,7 +163,8 @@ LED                   NodeMCU
 ### Dependencies
 - **DHT sensor library** (Adafruit)
 - **Adafruit Unified Sensor** (Required by DHT)
-- **TFT_eSPI** (Bodmer) - For MB3 display support
+- **Adafruit SSD1306** (Adafruit) - For I2C OLED display support
+- **Adafruit GFX Library** (Adafruit) - Graphics library for display
 - **Servo** (Arduino built-in)
 
 ## 🎯 System Behavior

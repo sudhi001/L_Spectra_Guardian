@@ -2,27 +2,21 @@
 #define DISPLAY_H
 
 #include <Arduino.h>
-#include <TFT_eSPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 class Display {
 private:
-    TFT_eSPI tft;
-    int csPin;
-    int dcPin;
-    int rstPin;
-    int ledPin;
+    Adafruit_SSD1306 display;
     bool isInitialized;
     
     // Display layout constants
-    static const int HEADER_HEIGHT = 30;
-    static const int LINE_HEIGHT = 25;
-    static const int MARGIN = 10;
-    
-    // Color definitions
-    uint16_t backgroundColor;
-    uint16_t textColor;
-    uint16_t headerColor;
-    uint16_t alarmColor;
+    static const int SCREEN_WIDTH = 128;
+    static const int SCREEN_HEIGHT = 64;
+    static const int OLED_RESET = -1; // No reset pin needed for I2C
+    static const int LINE_HEIGHT = 10;
+    static const int MARGIN = 2;
     
     // Display update tracking
     unsigned long lastUpdate;
@@ -35,7 +29,7 @@ private:
     bool lastAlarmState;
     
 public:
-    Display(int cs = 15, int dc = 0, int rst = 16, int led = 1);
+    Display();
     
     void begin();
     void test();
@@ -48,13 +42,11 @@ public:
     void updateDisplay(float temp, float humidity, float distance, bool alarmActive, float servoAngle);
     
     // Utility methods
-    void setBrightness(int brightness);
-    void showMessage(const char* message, int color = TFT_WHITE);
-    void drawProgressBar(int x, int y, int width, int height, int progress, uint16_t color);
+    void showMessage(const char* message);
+    void drawProgressBar(int x, int y, int width, int height, int progress);
     
 private:
     void drawAlarmIndicator(bool active);
-    void drawSensorIcon(int x, int y, int iconType);
     void formatFloat(float value, char* buffer, int decimals = 1);
 };
 

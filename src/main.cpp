@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <WebSocketsServer.h>
 #include <FS.h>
 #include "TemperatureSensor.h"
 #include "UltrasonicSensor.h"
@@ -21,6 +22,7 @@ Display display(1, 3); // I2C Display: SCL=GPIO1(TX), SDA=GPIO3(RX)
 const char* ssid = "L_Spectra_Guardian";
 const char* password = ""; // Open access point
 ESP8266WebServer server(80);
+WebSocketsServer webSocket = WebSocketsServer(81);
 
 // Web server functions
 void handleRoot() {
@@ -68,6 +70,40 @@ void handleAPI() {
     server.send(200, "application/json", json);
 }
 
+// WebSocket event handlers
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+    switch(type) {
+        case WStype_DISCONNECTED:
+            Serial.printf("[%u] Disconnected!\n", num);
+            break;
+        case WStype_CONNECTED: {
+            IPAddress ip = webSocket.remoteIP(num);
+            Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+            // Send initial data to newly connected client
+            sendSensorData();
+            break;
+        }
+        case WStype_TEXT:
+            Serial.printf("[%u] get Text: %s\n", num, payload);
+            break;
+        default:
+            break;
+    }
+}
+
+// Function to broadcast sensor data to all connected WebSocket clients
+void sendSensorData() {
+    String json = "{";
+    json += "\"temperature\":" + String(tempSensor.getTemperature()) + ",";
+    json += "\"humidity\":" + String(tempSensor.getHumidity()) + ",";
+    json += "\"distance\":" + String(ultrasonicSensor.getDistance()) + ",";
+    json += "\"airQuality\":" + String(mqSensor.getAirQuality()) + ",";
+    json += "\"alarm\":" + String(ultrasonicSensor.isObjectTooClose() ? "true" : "false");
+    json += "}";
+    
+    webSocket.broadcastTXT(json);
+}
+
 void setupWiFi() {
     WiFi.mode(WIFI_AP);
     WiFi.softAP(ssid, password);
@@ -92,7 +128,12 @@ void setupWiFi() {
     server.on("/api/sensors", handleAPI);
     server.begin();
     
+    // Setup WebSocket server
+    webSocket.begin();
+    webSocket.onEvent(webSocketEvent);
+    
     Serial.println("Web server started");
+    Serial.println("WebSocket server started on port 81");
     Serial.println("Access URLs:");
     Serial.println("  http://192.168.4.1");
     Serial.println("  http://app.local");
@@ -180,8 +221,18 @@ void loop() {
     // Handle web server requests
     server.handleClient();
     
+    // Handle WebSocket events
+    webSocket.loop();
+    
     // Handle mDNS requests
     MDNS.update();
+    
+    // Broadcast sensor data via WebSocket every 500ms for real-time updates
+    static unsigned long lastWebSocketUpdate = 0;
+    if (millis() - lastWebSocketUpdate > 500) {
+        sendSensorData();
+        lastWebSocketUpdate = millis();
+    }
     
     delay(100); // Standard update interval
 }

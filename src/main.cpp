@@ -24,6 +24,9 @@ const char* password = ""; // Open access point
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
+// Global alarm state for consistent hardware and web interface
+bool alarmActive = false;
+
 // Web server functions
 void handleRoot() {
     File file = SPIFFS.open("/index.html", "r");
@@ -71,13 +74,13 @@ void handleAPI() {
 }
 
 // Function to broadcast sensor data to all connected WebSocket clients
-void sendSensorData() {
+void sendSensorData(bool alarmStatus) {
     String json = "{";
     json += "\"temperature\":" + String(tempSensor.getTemperature()) + ",";
     json += "\"humidity\":" + String(tempSensor.getHumidity()) + ",";
     json += "\"distance\":" + String(ultrasonicSensor.getDistance()) + ",";
     json += "\"airQuality\":" + String(mqSensor.getAirQuality()) + ",";
-    json += "\"alarm\":" + String(ultrasonicSensor.isObjectTooClose() ? "true" : "false");
+    json += "\"alarm\":" + String(alarmStatus ? "true" : "false");
     json += "}";
     
     webSocket.broadcastTXT(json);
@@ -93,7 +96,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             IPAddress ip = webSocket.remoteIP(num);
             Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
             // Send initial data to newly connected client
-            sendSensorData();
+            sendSensorData(alarmActive);
             break;
         }
         case WStype_TEXT:
@@ -184,7 +187,6 @@ void loop() {
     
     // Read distance less frequently for better reliability
     static unsigned long lastDistanceRead = 0;
-    static bool alarmActive = false;
     
     if (millis() - lastDistanceRead > 500) { // Check every 500ms
         ultrasonicSensor.readDistance();
@@ -196,11 +198,15 @@ void loop() {
                 led.on(); // Turn on LED first
                 buzzer.playAlert(); // Then play buzzer
                 alarmActive = true;
+                // Immediately broadcast alarm state change
+                sendSensorData(alarmActive);
             }
         } else {
             if (alarmActive) {
                 led.off(); // Turn off LED when alarm clears
                 alarmActive = false;
+                // Immediately broadcast alarm state change
+                sendSensorData(alarmActive);
             }
         }
     }
@@ -230,7 +236,7 @@ void loop() {
     // Broadcast sensor data via WebSocket every 500ms for real-time updates
     static unsigned long lastWebSocketUpdate = 0;
     if (millis() - lastWebSocketUpdate > 500) {
-        sendSensorData();
+        sendSensorData(alarmActive);
         lastWebSocketUpdate = millis();
     }
     

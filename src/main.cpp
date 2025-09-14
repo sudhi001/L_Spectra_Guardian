@@ -70,6 +70,19 @@ void handleAPI() {
     server.send(200, "application/json", json);
 }
 
+// Function to broadcast sensor data to all connected WebSocket clients
+void sendSensorData() {
+    String json = "{";
+    json += "\"temperature\":" + String(tempSensor.getTemperature()) + ",";
+    json += "\"humidity\":" + String(tempSensor.getHumidity()) + ",";
+    json += "\"distance\":" + String(ultrasonicSensor.getDistance()) + ",";
+    json += "\"airQuality\":" + String(mqSensor.getAirQuality()) + ",";
+    json += "\"alarm\":" + String(ultrasonicSensor.isObjectTooClose() ? "true" : "false");
+    json += "}";
+    
+    webSocket.broadcastTXT(json);
+}
+
 // WebSocket event handlers
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
     switch(type) {
@@ -89,19 +102,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         default:
             break;
     }
-}
-
-// Function to broadcast sensor data to all connected WebSocket clients
-void sendSensorData() {
-    String json = "{";
-    json += "\"temperature\":" + String(tempSensor.getTemperature()) + ",";
-    json += "\"humidity\":" + String(tempSensor.getHumidity()) + ",";
-    json += "\"distance\":" + String(ultrasonicSensor.getDistance()) + ",";
-    json += "\"airQuality\":" + String(mqSensor.getAirQuality()) + ",";
-    json += "\"alarm\":" + String(ultrasonicSensor.isObjectTooClose() ? "true" : "false");
-    json += "}";
-    
-    webSocket.broadcastTXT(json);
 }
 
 void setupWiFi() {

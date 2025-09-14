@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
 #include <FS.h>
 #include "TemperatureSensor.h"
 #include "UltrasonicSensor.h"
@@ -77,12 +78,24 @@ void setupWiFi() {
     Serial.print("IP Address: ");
     Serial.println(WiFi.softAPIP());
     
+    // Setup mDNS for local domain name
+    if (MDNS.begin("app")) {
+        Serial.println("mDNS responder started");
+        Serial.println("Access via: http://app.local");
+        MDNS.addService("http", "tcp", 80);
+    } else {
+        Serial.println("mDNS responder failed to start");
+    }
+    
     // Setup web server routes
     server.on("/", handleRoot);
     server.on("/api/sensors", handleAPI);
     server.begin();
     
     Serial.println("Web server started");
+    Serial.println("Access URLs:");
+    Serial.println("  http://192.168.4.1");
+    Serial.println("  http://app.local");
 }
 
 void setup() {
@@ -166,6 +179,9 @@ void loop() {
     
     // Handle web server requests
     server.handleClient();
+    
+    // Handle mDNS requests
+    MDNS.update();
     
     delay(100); // Standard update interval
 }

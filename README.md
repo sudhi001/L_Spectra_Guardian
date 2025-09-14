@@ -2,6 +2,12 @@
 
 A comprehensive IoT sensor monitoring system built with ESP8266 NodeMCU that monitors temperature, humidity, proximity, air quality, and provides audio/visual alerts. This project was lovingly created by a father and son team for a school exhibition at Loyola School, Trivandrum.
 
+## 📸 System Overview
+
+![L Spectra Guardian IoT Monitoring System](./screenshots/L%20Spectra%20Guardian.png)
+
+*The L Spectra Guardian in action - monitoring environmental conditions with real-time web interface*
+
 ## 👨‍👦 Project Story
 
 This project was developed as a collaborative effort between a father and his UKG (Upper Kindergarten) son for the "L Spectra" school exhibition at Loyola School, Trivandrum. The young student actively participated in development, testing, and will be presenting this innovative project at the school exhibition, showcasing the wonderful world of IoT and sensor technology.

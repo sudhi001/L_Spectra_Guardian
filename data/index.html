@@ -319,7 +319,7 @@
                 <div class="sensor-icon">TEMP</div>
                 <div class="sensor-label">Temperature</div>
                 <div class="sensor-value" id="temperature">--</div>
-                <div class="sensor-unit">°C</div>
+                <div class="sensor-unit">C</div>
             </div>
 
             <div class="sensor-card humidity">
@@ -444,7 +444,7 @@
         function updateSensorDisplay(data) {
             console.log('Received sensor data:', data);
             
-            document.getElementById('temperature').textContent = data.temperature.toFixed(1);
+            document.getElementById('temperature').textContent = data.temperature.toFixed(1) + '°';
             document.getElementById('humidity').textContent = data.humidity.toFixed(1);
             document.getElementById('airQuality').textContent = data.airQuality.toFixed(1);
             document.getElementById('distance').textContent = data.distance.toFixed(1) + ' cm';

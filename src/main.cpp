@@ -50,7 +50,7 @@ void handleRoot() {
         html += "<div class='sensor'><h3>DIST Distance</h3><div class='value' id='dist'>--cm</div></div>";
         html += "<div class='alert' id='alert'>Status: SAFE</div>";
         html += "<script>setInterval(()=>{fetch('/api/sensors').then(r=>r.json()).then(d=>{";
-        html += "document.getElementById('temp').textContent=d.temperature.toFixed(1)+'°C';";
+        html += "document.getElementById('temp').textContent=d.temperature.toFixed(1)+'C';";
         html += "document.getElementById('hum').textContent=d.humidity.toFixed(1)+'%';";
         html += "document.getElementById('aq').textContent=d.airQuality.toFixed(1)+'%';";
         html += "document.getElementById('dist').textContent=d.distance.toFixed(1)+'cm';";

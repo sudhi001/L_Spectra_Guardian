@@ -23,7 +23,7 @@ void TemperatureSensor::readTemperature() {
     Serial.println("=== Temperature Reading ===");
     Serial.print("Temperature: ");
     Serial.print(t);
-    Serial.println(" °C");
+    Serial.println(" C");
     Serial.print("Humidity: ");
     Serial.print(h);
     Serial.println(" %");

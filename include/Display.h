@@ -18,7 +18,7 @@ public:
     void test();
     void showMessage(const char* message);
     void showHello();
-    void updateDisplay(float temperature, float humidity, float distance, bool alarm, int servoAngle);
+    void updateDisplay(float temperature, float humidity, float distance, float airQuality, bool alarm);
     void clear();
 };
 

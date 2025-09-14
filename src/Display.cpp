@@ -61,7 +61,7 @@ void Display::showHello() {
     display.display();
 }
 
-void Display::updateDisplay(float temperature, float humidity, float distance, bool alarm, int servoAngle) {
+void Display::updateDisplay(float temperature, float humidity, float distance, float airQuality, bool alarm) {
     if (!initialized) return;
     
     display.clearDisplay();
@@ -75,16 +75,23 @@ void Display::updateDisplay(float temperature, float humidity, float distance, b
     display.println("C");
     
     // Humidity
-    display.setCursor(0, 20);
+    display.setCursor(0, 12);
     display.print("H:");
     display.print(humidity);
     display.println("%");
     
     // Distance
-    display.setCursor(0, 40);
-    display.print("D:");
-    display.print(distance);
-    display.println("cm");
+    // display.setCursor(0, 24);
+    // display.print("D:");
+    // display.print(distance);
+    // display.println("cm");
+    
+    // Air Quality
+    display.setCursor(0, 36);
+    display.print("AQ:");
+    display.print(airQuality);
+    display.println("%");
+    
     
     display.display();
 }

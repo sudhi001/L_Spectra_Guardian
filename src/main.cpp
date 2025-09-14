@@ -4,11 +4,13 @@
 #include "Buzzer.h"
 #include "LED.h"
 #include "Display.h"
+#include "MQSensor.h"
 
 TemperatureSensor tempSensor(2); // DHT11 on GPIO2
 UltrasonicSensor ultrasonicSensor(5, 4, 15.0); // HC-SR04: Trig=GPIO5(D1), Echo=GPIO4(D2), Alert=15cm
 Buzzer buzzer(14); // TMB12A12 on GPIO14(D5)
 LED led(13); // Single color LED on GPIO13(D7)
+MQSensor mqSensor(0); // MH MQ sensor on A0 (GPIO0)
 Display display(1, 3); // I2C Display: SCL=GPIO1(TX), SDA=GPIO3(RX)
 
 void setup() {
@@ -24,11 +26,13 @@ void setup() {
     ultrasonicSensor.begin();
     buzzer.begin();
     led.begin();
+    mqSensor.begin();
     
     // Test components on startup
     buzzer.test();
     ultrasonicSensor.test();
     led.test();
+    mqSensor.test();
     
     // Show initial status on display
     display.showMessage("System Ready!");
@@ -37,6 +41,7 @@ void setup() {
 
 void loop() {
     tempSensor.readTemperature(); // Read and display temperature
+    mqSensor.readAirQuality(); // Read air quality
     
     // Update LED blinking
     led.update();
@@ -71,8 +76,8 @@ void loop() {
             tempSensor.getTemperature(),
             tempSensor.getHumidity(),
             ultrasonicSensor.getDistance(),
-            alarmActive,
-            0
+            mqSensor.getAirQuality(),
+            alarmActive
         );
         lastDisplayUpdate = millis();
     }

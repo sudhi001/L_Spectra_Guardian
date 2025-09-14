@@ -1,6 +1,6 @@
 # L Spectra Guardian 🌟
 
-A comprehensive IoT sensor monitoring system built with ESP8266 NodeMCU that watches over temperature, humidity, proximity, and provides audio/visual alerts with mechanical movement. This project was lovingly created by a father and son team for a school exhibition at Loyola School, Trivandrum.
+A comprehensive IoT sensor monitoring system built with ESP8266 NodeMCU that monitors temperature, humidity, proximity, air quality, and provides audio/visual alerts. This project was lovingly created by a father and son team for a school exhibition at Loyola School, Trivandrum.
 
 ## 👨‍👦 Project Story
 
@@ -14,49 +14,49 @@ This project was developed as a collaborative effort between a father and his UK
 
 ## 🚀 Features
 
-- **📺 Visual Display** - Robocraze MB3 I2C OLED display (128x64) with real-time sensor data visualization
+- **📺 Visual Display** - 0.91" I2C OLED display (128x64) with real-time sensor data visualization
 - **🌡️ Temperature & Humidity Monitoring** - DHT11 sensor keeps track of environmental conditions
 - **📏 Proximity Detection** - HC-SR04 ultrasonic sensor with 15cm alert threshold for safety
+- **🌬️ Air Quality Monitoring** - MH MQ sensor detects air quality levels with status indicators
 - **🔊 Audio Alerts** - TMB12A12 buzzer with proximity warnings (great for demonstrations!)
 - **💡 Visual Indicators** - Single color LED for clear alarm status indication
-- **🤖 Mechanical Movement** - SG90 servo motor with continuous rotation (fascinating to watch!)
 - **⚡ Real-time Monitoring** - Optimized for responsive performance and smooth demonstrations
 - **🎯 Educational Value** - Perfect for learning about sensors, programming, and IoT concepts
-- **🎨 Interactive Interface** - Colorful display with progress bars, icons, and status indicators
+- **🎨 Interactive Interface** - Clean display with sensor readings and status indicators
 
 ## 📋 Hardware Requirements
 
 ### Components
 - **ESP8266 NodeMCU v3** (Main controller)
-- **Robocraze MB3 Display** (I2C OLED Display - 128x64 SSD1306)
+- **0.91" OLED Display** (I2C SSD1306 - 128x64)
 - **DHT11** (Temperature & Humidity sensor)
 - **HC-SR04** (Ultrasonic distance sensor)
+- **MH MQ Sensor** (Air quality sensor)
 - **TMB12A12** (Active buzzer)
-- **SG90** (Servo motor)
 - **Single Color LED** (Status indicator)
 - **Jumper wires** and **breadboard**
 - **220Ω resistor** (for LED protection)
 
 ### Power Requirements
-- **5V** for HC-SR04 and SG90
-- **3.3V** for DHT11, LED, and MB3 Display
+- **5V** for HC-SR04 and MH MQ sensor
+- **3.3V** for DHT11, LED, and OLED Display
 - **USB power** from computer or external adapter
 
 ## 🔌 Complete Sensor Setup
 
-### 1. Robocraze MB3 Display (I2C OLED Display)
+### 1. 0.91" OLED Display (I2C SSD1306)
 ```
-MB3 Display            NodeMCU
+OLED Display           NodeMCU
 ┌─────────┐          ┌─────────┐
 │   VCC   │ ──────── │   3.3V   │
 │   GND   │ ──────── │   GND    │
-│   SCL   │ ──────── │   GPIO15 │ (D8) - I2C Clock
-│   SDA   │ ──────── │   GPIO16 │ (D0) - I2C Data
+│   SCL   │ ──────── │   GPIO1  │ (TX) - I2C Clock
+│   SDA   │ ──────── │   GPIO3  │ (RX) - I2C Data
 └─────────┘          └─────────┘
 
-Note: MB3 Display uses I2C communication
-- SCL (Serial Clock): GPIO15 (D8)
-- SDA (Serial Data): GPIO16 (D0)
+Note: OLED Display uses I2C communication
+- SCL (Serial Clock): GPIO1 (TX)
+- SDA (Serial Data): GPIO3 (RX)
 - I2C Address: 0x3C (default)
 ```
 
@@ -71,7 +71,7 @@ DHT11 Sensor          NodeMCU
 └─────────┘          └─────────┘
 ```
 
-### 2. HC-SR04 (Distance Measurement)
+### 3. HC-SR04 (Distance Measurement)
 ```
 HC-SR04 Sensor        NodeMCU
 ┌─────────┐          ┌─────────┐
@@ -82,22 +82,22 @@ HC-SR04 Sensor        NodeMCU
 └─────────┘          └─────────┘
 ```
 
-### 4. TMB12A12 (Buzzer)
+### 4. MH MQ Sensor (Air Quality)
+```
+MH MQ Sensor          NodeMCU
+┌─────────┐          ┌─────────┐
+│   VCC   │ ──────── │   5V    │
+│   GND   │ ──────── │   GND   │
+│   A0    │ ──────── │   GPIO0 │ (A0)
+└─────────┘          └─────────┘
+```
+
+### 5. TMB12A12 (Buzzer)
 ```
 TMB12A12 Buzzer       NodeMCU
 ┌─────────┐          ┌─────────┐
 │   (+)   │ ──────── │   GPIO14│ (D5)
 │   (-)   │ ──────── │   GND   │
-└─────────┘          └─────────┘
-```
-
-### 5. SG90 (Servo Motor)
-```
-SG90 Servo            NodeMCU
-┌─────────┐          ┌─────────┐
-│   Red   │ ──────── │   5V    │
-│  Brown  │ ──────── │   GND   │
-│ Orange  │ ──────── │   GPIO12│ (D6)
 └─────────┘          └─────────┘
 ```
 
@@ -116,11 +116,11 @@ LED                   NodeMCU
 
 | Component | Pin | GPIO | Function |
 |-----------|-----|------|----------|
-| **MB3 Display** | | | |
-| MB3 VCC | 3.3V | - | Power |
-| MB3 GND | GND | - | Ground |
-| MB3 SCL | D8 | GPIO15 | I2C Clock |
-| MB3 SDA | D0 | GPIO16 | I2C Data |
+| **OLED Display** | | | |
+| OLED VCC | 3.3V | - | Power |
+| OLED GND | GND | - | Ground |
+| OLED SCL | TX | GPIO1 | I2C Clock |
+| OLED SDA | RX | GPIO3 | I2C Data |
 | **DHT11** | | | |
 | DHT11 VCC | 3.3V | - | Power |
 | DHT11 DATA | D4 | GPIO2 | Data |
@@ -130,13 +130,13 @@ LED                   NodeMCU
 | HC-SR04 Trig | D1 | GPIO5 | Trigger |
 | HC-SR04 Echo | D2 | GPIO4 | Echo |
 | HC-SR04 GND | GND | - | Ground |
+| **MH MQ Sensor** | | | |
+| MQ VCC | 5V | - | Power |
+| MQ GND | GND | - | Ground |
+| MQ A0 | A0 | GPIO0 | Analog Input |
 | **TMB12A12** | | | |
 | Buzzer (+) | D5 | GPIO14 | Signal |
 | Buzzer (-) | GND | - | Ground |
-| **SG90** | | | |
-| Servo VCC | 5V | - | Power |
-| Servo GND | GND | - | Ground |
-| Servo Signal | D6 | GPIO12 | Control |
 | **LED** | | | |
 | LED (+) | D7 | GPIO13 | Signal |
 | LED (-) | GND | - | Ground |
@@ -221,11 +221,11 @@ LED                   NodeMCU
 - Check buzzer polarity (+ to GPIO14, - to GND)
 - Try different GPIO pin if needed
 
-#### Servo Not Moving
+#### MQ Sensor Not Reading
 - Check 5V power supply
-- Verify signal connection (GPIO12)
-- Ensure servo is properly powered
-- Check for mechanical obstructions
+- Verify A0 connection (GPIO0)
+- Ensure sensor is properly heated (wait 2-3 minutes)
+- Check for loose connections
 
 #### LED Not Working
 - Verify GPIO13 connection
@@ -244,6 +244,11 @@ Humidity: 45.2 %
 Distance: 12.5 cm
 WARNING: Object closer than 15.0 cm!
 =======================
+
+=== Air Quality Reading ===
+MQ Sensor - Raw: 512, Voltage: 1.65V, Air Quality: 50%
+Air Quality: 50% (Fair)
+=========================
 
 ALERT: Object too close!
 ```

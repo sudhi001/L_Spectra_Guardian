@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>L Spectra Guardian - IoT Sensor Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .sensor-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sensor-card.temperature {
+            border-color: #ff6b6b;
+        }
+
+        .sensor-card.humidity {
+            border-color: #4ecdc4;
+        }
+
+        .sensor-card.air-quality {
+            border-color: #45b7d1;
+            grid-column: span 2;
+        }
+
+        .sensor-icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .sensor-card.temperature .sensor-icon {
+            color: #ff6b6b;
+        }
+
+        .sensor-card.humidity .sensor-icon {
+            color: #4ecdc4;
+        }
+
+        .sensor-card.air-quality .sensor-icon {
+            color: #45b7d1;
+        }
+
+        .sensor-label {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .sensor-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .sensor-unit {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .status-section {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-label {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .alert-status {
+            font-size: 1.8em;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .alert-status.active {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .alert-status.inactive {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .info-section {
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .refresh-info {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                padding: 15px;
+                border-radius: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .header p {
+                font-size: 0.9em;
+            }
+            
+            .sensor-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .sensor-card {
+                padding: 12px;
+            }
+            
+            .sensor-card.air-quality {
+                grid-column: span 1;
+            }
+            
+            .sensor-icon {
+                font-size: 1.5em;
+            }
+            
+            .sensor-value {
+                font-size: 1.5em;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .info-item {
+                padding: 10px;
+            }
+            
+            .status-section {
+                padding: 15px;
+            }
+            
+            .alert-status {
+                font-size: 1.4em;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>L Spectra Guardian</h1>
+            <p>IoT Sensor Monitoring System</p>
+        </div>
+
+        <div class="sensor-grid">
+            <div class="sensor-card temperature">
+                <div class="sensor-icon">TEMP</div>
+                <div class="sensor-label">Temperature</div>
+                <div class="sensor-value" id="temperature">--</div>
+                <div class="sensor-unit">°C</div>
+            </div>
+
+            <div class="sensor-card humidity">
+                <div class="sensor-icon">HUM</div>
+                <div class="sensor-label">Humidity</div>
+                <div class="sensor-value" id="humidity">--</div>
+                <div class="sensor-unit">%</div>
+            </div>
+
+            <div class="sensor-card air-quality">
+                <div class="sensor-icon">AIR</div>
+                <div class="sensor-label">Air Quality</div>
+                <div class="sensor-value" id="airQuality">--</div>
+                <div class="sensor-unit">%</div>
+            </div>
+        </div>
+
+        <div class="status-section">
+            <div class="status-label">Proximity Alert Status</div>
+            <div class="alert-status inactive" id="alertStatus">SAFE</div>
+        </div>
+
+        <div class="info-section">
+            <h3>System Information</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Distance</div>
+                    <div class="info-value" id="distance">-- cm</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Last Update</div>
+                    <div class="info-value" id="lastUpdate">--</div>
+                </div>
+            </div>
+            <div class="refresh-info">
+                Data refreshes automatically every 2 seconds
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateSensorData() {
+            fetch('/api/sensors')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('temperature').textContent = data.temperature.toFixed(1);
+                    document.getElementById('humidity').textContent = data.humidity.toFixed(1);
+                    document.getElementById('airQuality').textContent = data.airQuality.toFixed(1);
+                    document.getElementById('distance').textContent = data.distance.toFixed(1) + ' cm';
+                    
+                    const alertStatus = document.getElementById('alertStatus');
+                    if (data.alarm) {
+                        alertStatus.textContent = 'ALERT';
+                        alertStatus.className = 'alert-status active';
+                    } else {
+                        alertStatus.textContent = 'SAFE';
+                        alertStatus.className = 'alert-status inactive';
+                    }
+                    
+                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                })
+                .catch(error => {
+                    console.error('Error fetching sensor data:', error);
+                });
+        }
+
+        // Update data immediately and then every 2 seconds
+        updateSensorData();
+        setInterval(updateSensorData, 2000);
+    </script>
+</body>
+</html>

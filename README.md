@@ -23,6 +23,40 @@ This project was developed as a collaborative effort between a father and his UK
 - **⚡ Real-time Monitoring** - Optimized for responsive performance and smooth demonstrations
 - **🎯 Educational Value** - Perfect for learning about sensors, programming, and IoT concepts
 - **🎨 Interactive Interface** - Clean display with sensor readings and status indicators
+- **🌐 Web Interface** - WiFi access point with responsive web dashboard
+- **📱 Mobile-Friendly** - Optimized for smartphones and tablets
+- **🔗 Easy Access** - Connect via domain name (app.local) or IP address
+
+## 🌐 Web Interface Access
+
+The L Spectra Guardian creates its own WiFi network for remote monitoring:
+
+### WiFi Connection
+- **Network Name**: `L_Spectra_Guardian`
+- **Password**: None (open network)
+- **Access Methods**:
+  - **Domain Name**: `http://app.local` (recommended)
+  - **IP Address**: `http://192.168.4.1`
+
+### Web Dashboard Features
+- **📊 Real-time Sensor Data** - Live updates every 2 seconds
+- **📱 Responsive Design** - Works on phones, tablets, and computers
+- **🎨 Modern Interface** - Clean, colorful display with sensor cards
+- **📈 Visual Indicators** - Color-coded status for each sensor
+- **🚨 Alert System** - Clear indication when proximity alarm is active
+
+### How to Use
+1. **Connect to WiFi**: Join "L_Spectra_Guardian" network on your device
+2. **Open Browser**: Go to `http://app.local` or `http://192.168.4.1`
+3. **Monitor Sensors**: View real-time temperature, humidity, air quality, and distance
+4. **Check Alerts**: See if proximity alarm is active
+5. **Mobile Access**: Perfect for demonstrations and remote monitoring
+
+### Technical Details
+- **mDNS Support**: Uses multicast DNS for `app.local` domain resolution
+- **SPIFFS Storage**: Web files stored in ESP8266 flash memory
+- **REST API**: JSON endpoint at `/api/sensors` for data access
+- **Auto-refresh**: Page updates automatically every 2 seconds
 
 ## 📋 Hardware Requirements
 
@@ -233,6 +267,15 @@ LED                   NodeMCU
 - Add 220Ω resistor if needed
 - Try different GPIO pin
 
+#### Web Interface Not Accessible
+- **WiFi Connection**: Ensure device is connected to "L_Spectra_Guardian" network
+- **Domain Name**: Try `http://app.local` first, then `http://192.168.4.1`
+- **Browser Issues**: Clear browser cache or try incognito/private mode
+- **mDNS Problems**: If `app.local` doesn't work, use IP address `192.168.4.1`
+- **Network Settings**: Check if device has internet connection disabled (should be off)
+- **ESP8266 Reset**: Power cycle the ESP8266 if web server doesn't start
+- **Serial Monitor**: Check for "Web server started" message in serial output
+
 ### Serial Monitor Output
 ```
 === Temperature Reading ===
@@ -246,9 +289,19 @@ WARNING: Object closer than 15.0 cm!
 =======================
 
 === Air Quality Reading ===
-MQ Sensor - Raw: 512, Voltage: 1.65V, Air Quality: 50%
+MQ Sensor - Raw: 512, Rs: 15.2 kOhms, Rs/Ro: 1.8, Air Quality: 50%
 Air Quality: 50% (Fair)
 =========================
+
+WiFi Access Point Started
+SSID: L_Spectra_Guardian
+IP Address: 192.168.4.1
+mDNS responder started
+Access via: http://app.local
+Web server started
+Access URLs:
+  http://192.168.4.1
+  http://app.local
 
 ALERT: Object too close!
 ```
@@ -261,15 +314,19 @@ hello/
 │   ├── TemperatureSensor.h
 │   ├── UltrasonicSensor.h
 │   ├── Buzzer.h
-│   ├── ServoMotor.h
-│   └── LED.h
+│   ├── LED.h
+│   ├── Display.h
+│   └── MQSensor.h
 ├── src/
 │   ├── main.cpp
 │   ├── TemperatureSensor.cpp
 │   ├── UltrasonicSensor.cpp
 │   ├── Buzzer.cpp
-│   ├── ServoMotor.cpp
-│   └── LED.cpp
+│   ├── LED.cpp
+│   ├── Display.cpp
+│   └── MQSensor.cpp
+├── data/
+│   └── index.html          # Web interface files
 ├── platformio.ini
 └── README.md
 ```

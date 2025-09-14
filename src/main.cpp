@@ -2,51 +2,41 @@
 #include "TemperatureSensor.h"
 #include "UltrasonicSensor.h"
 #include "Buzzer.h"
-#include "ServoMotor.h"
 #include "LED.h"
-// #include "Display.h"  // Disabled MB3 display
+#include "Display.h"
 
 TemperatureSensor tempSensor(2); // DHT11 on GPIO2
 UltrasonicSensor ultrasonicSensor(5, 4, 15.0); // HC-SR04: Trig=GPIO5(D1), Echo=GPIO4(D2), Alert=15cm
 Buzzer buzzer(14); // TMB12A12 on GPIO14(D5)
-ServoMotor servo(12); // SG90 on GPIO12(D6)
 LED led(13); // Single color LED on GPIO13(D7)
-// Display display(15, 16); // I2C Display: SCL=GPIO15(D8), SDA=GPIO16(D0) - DISABLED
+Display display(1, 3); // I2C Display: SCL=GPIO1(TX), SDA=GPIO3(RX)
 
 void setup() {
     Serial.begin(115200);
     delay(1000);
     
-    // Initialize display first for visual feedback - DISABLED
-    // display.begin();
-    // display.test();
+    // Initialize display first for visual feedback
+    display.begin();
+    display.showHello();
+    delay(3000);
     
     tempSensor.begin();
     ultrasonicSensor.begin();
     buzzer.begin();
-    servo.begin();
     led.begin();
     
     // Test components on startup
     buzzer.test();
     ultrasonicSensor.test();
-    servo.test();
     led.test();
     
-    // Start continuous rotation
-    servo.setRotationSpeed(2); // Medium speed
-    servo.startContinuousRotation();
-    
-    // Show initial status on display - DISABLED
-    // display.showMessage("System Ready!");
-    // delay(2000);
+    // Show initial status on display
+    display.showMessage("System Ready!");
+    delay(2000);
 }
 
 void loop() {
     tempSensor.readTemperature(); // Read and display temperature
-    
-    // Update continuous servo rotation
-    servo.updateRotation();
     
     // Update LED blinking
     led.update();
@@ -74,14 +64,18 @@ void loop() {
         }
     }
     
-    // Update display with current sensor data - DISABLED
-    // display.updateDisplay(
-    //     tempSensor.getTemperature(),
-    //     tempSensor.getHumidity(),
-    //     ultrasonicSensor.getDistance(),
-    //     alarmActive,
-    //     servo.getCurrentAngle()
-    // );
+    // Update display with current sensor data
+    static unsigned long lastDisplayUpdate = 0;
+    if (millis() - lastDisplayUpdate > 1000) { // Update display every second
+        display.updateDisplay(
+            tempSensor.getTemperature(),
+            tempSensor.getHumidity(),
+            ultrasonicSensor.getDistance(),
+            alarmActive,
+            0
+        );
+        lastDisplayUpdate = millis();
+    }
     
     delay(100); // Standard update interval
 }

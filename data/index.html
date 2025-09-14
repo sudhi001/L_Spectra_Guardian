@@ -136,46 +136,6 @@
             color: #666;
         }
 
-        .status-section {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .status-label {
-            font-size: 1.2em;
-            color: #333;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .alert-status {
-            font-size: 1.8em;
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 25px;
-            display: inline-block;
-            min-width: 100px;
-        }
-
-        .alert-status.active {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
-        .alert-status.inactive {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
-            color: white;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
 
         .info-section {
             background: rgba(52, 152, 219, 0.1);
@@ -293,14 +253,6 @@
                 padding: 10px;
             }
             
-            .status-section {
-                padding: 15px;
-            }
-            
-            .alert-status {
-                font-size: 1.4em;
-                padding: 8px 16px;
-            }
         }
     </style>
 </head>
@@ -337,10 +289,6 @@
             </div>
         </div>
 
-        <div class="status-section">
-            <div class="status-label">Proximity Alert Status</div>
-            <div class="alert-status inactive" id="alertStatus">SAFE</div>
-        </div>
 
         <div class="info-section">
             <h3>System Information</h3>
@@ -449,18 +397,6 @@
             document.getElementById('airQuality').textContent = data.airQuality.toFixed(1);
             document.getElementById('distance').textContent = data.distance.toFixed(1) + ' cm';
             
-            const alertStatus = document.getElementById('alertStatus');
-            console.log('Alarm status:', data.alarm, typeof data.alarm);
-            
-            if (data.alarm === true || data.alarm === 'true') {
-                alertStatus.textContent = 'ALERT';
-                alertStatus.className = 'alert-status active';
-                console.log('Setting alert status to ALERT');
-            } else {
-                alertStatus.textContent = 'SAFE';
-                alertStatus.className = 'alert-status inactive';
-                console.log('Setting alert status to SAFE');
-            }
             
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
         }

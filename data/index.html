@@ -373,11 +373,28 @@
             // Determine WebSocket URL based on current location
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const host = window.location.hostname;
-            const wsUrl = `${protocol}//${host}:81`;
             
-            console.log('Connecting to WebSocket:', wsUrl);
+            // Try multiple WebSocket URLs for better compatibility
+            const wsUrls = [
+                `${protocol}//${host}:81`,           // Primary: same hostname with port 81
+                `${protocol}//192.168.4.1:81`,       // Fallback: direct IP with port 81
+                `${protocol}//${host}/ws`,            // Alternative: same hostname with /ws path
+                `${protocol}//192.168.4.1/ws`         // Alternative: direct IP with /ws path
+            ];
             
-            websocket = new WebSocket(wsUrl);
+            let currentUrlIndex = 0;
+            
+            function tryConnect() {
+                if (currentUrlIndex >= wsUrls.length) {
+                    console.log('All WebSocket URLs failed. Falling back to polling.');
+                    fallbackToPolling();
+                    return;
+                }
+                
+                const wsUrl = wsUrls[currentUrlIndex];
+                console.log(`Attempting WebSocket connection ${currentUrlIndex + 1}/${wsUrls.length}:`, wsUrl);
+                
+                websocket = new WebSocket(wsUrl);
             
             websocket.onopen = function(event) {
                 console.log('WebSocket connected');
@@ -397,15 +414,16 @@
             };
             
             websocket.onclose = function(event) {
-                console.log('WebSocket disconnected');
+                console.log('WebSocket disconnected for URL:', wsUrl);
                 document.getElementById('connectionStatus').textContent = 'Disconnected';
                 document.getElementById('connectionStatus').className = 'connection-status disconnected';
                 
-                // Attempt to reconnect
+                // Attempt to reconnect with next URL
                 if (reconnectAttempts < maxReconnectAttempts) {
                     reconnectAttempts++;
                     console.log(`Attempting to reconnect... (${reconnectAttempts}/${maxReconnectAttempts})`);
-                    setTimeout(connectWebSocket, 2000);
+                    currentUrlIndex = 0; // Reset to first URL for reconnection
+                    setTimeout(tryConnect, 2000);
                 } else {
                     console.log('Max reconnection attempts reached. Falling back to polling.');
                     fallbackToPolling();
@@ -413,23 +431,35 @@
             };
             
             websocket.onerror = function(error) {
-                console.error('WebSocket error:', error);
+                console.error('WebSocket error for URL:', wsUrl, error);
+                currentUrlIndex++;
+                setTimeout(tryConnect, 1000); // Try next URL after 1 second
             };
+            }
+            
+            // Start the connection attempt
+            tryConnect();
         }
 
         function updateSensorDisplay(data) {
+            console.log('Received sensor data:', data);
+            
             document.getElementById('temperature').textContent = data.temperature.toFixed(1);
             document.getElementById('humidity').textContent = data.humidity.toFixed(1);
             document.getElementById('airQuality').textContent = data.airQuality.toFixed(1);
             document.getElementById('distance').textContent = data.distance.toFixed(1) + ' cm';
             
             const alertStatus = document.getElementById('alertStatus');
-            if (data.alarm) {
+            console.log('Alarm status:', data.alarm, typeof data.alarm);
+            
+            if (data.alarm === true || data.alarm === 'true') {
                 alertStatus.textContent = 'ALERT';
                 alertStatus.className = 'alert-status active';
+                console.log('Setting alert status to ALERT');
             } else {
                 alertStatus.textContent = 'SAFE';
                 alertStatus.className = 'alert-status inactive';
+                console.log('Setting alert status to SAFE');
             }
             
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();

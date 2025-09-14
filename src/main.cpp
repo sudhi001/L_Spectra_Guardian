@@ -83,6 +83,11 @@ void sendSensorData(bool alarmStatus) {
     json += "\"alarm\":" + String(alarmStatus ? "true" : "false");
     json += "}";
     
+    Serial.print("Broadcasting WebSocket data: ");
+    Serial.println(json);
+    Serial.print("Alarm status: ");
+    Serial.println(alarmStatus ? "true" : "false");
+    
     webSocket.broadcastTXT(json);
 }
 

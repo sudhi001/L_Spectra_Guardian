@@ -201,6 +201,10 @@ LED                   NodeMCU
    pio run --target upload
    ```
 
+### 📖 Complete Project Guide
+For detailed step-by-step instructions, component explanations, and troubleshooting tips, refer to the comprehensive project guide:
+- **[NodeMCU Project Guide (PDF)](./nodemcu_project_guide_full.pdf)** - Complete documentation with wiring diagrams, code explanations, and exhibition presentation tips
+
 ### Dependencies
 - **DHT sensor library** (Adafruit)
 - **Adafruit Unified Sensor** (Required by DHT)

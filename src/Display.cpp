@@ -20,9 +20,9 @@ void Display::begin() {
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(20, 20);
-    display.println("READY");
+    display.println("L SECTRA GUARDIAN");
     display.display();
-    delay(1000);
+    delay(2000);
 }
 
 void Display::test() {
@@ -41,9 +41,9 @@ void Display::showMessage(const char* message) {
     if (!initialized) return;
     
     display.clearDisplay();
-    display.setTextSize(1);
+    display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
+    display.setCursor(0, 2);
     display.println(message);
     display.display();
 }
@@ -69,13 +69,13 @@ void Display::updateDisplay(float temperature, float humidity, float distance, f
     display.setTextColor(SSD1306_WHITE);
     
     // Temperature
-    display.setCursor(0, 0);
+    display.setCursor(0, 1);
     display.print("T:");
     display.print(temperature);
     display.println("C");
     
     // Humidity
-    display.setCursor(0, 12);
+    display.setCursor(0, 21);
     display.print("H:");
     display.print(humidity);
     display.println("%");
@@ -87,7 +87,7 @@ void Display::updateDisplay(float temperature, float humidity, float distance, f
     // display.println("cm");
     
     // Air Quality
-    display.setCursor(0, 36);
+    display.setCursor(0, 41);
     display.print("AQ:");
     display.print(airQuality);
     display.println("%");

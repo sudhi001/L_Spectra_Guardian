@@ -4,6 +4,7 @@
 #include <ESP8266mDNS.h>
 #include <WebSocketsServer.h>
 #include <FS.h>
+#include <WiFiClient.h>
 #include "TemperatureSensor.h"
 #include "UltrasonicSensor.h"
 #include "Buzzer.h"
@@ -26,6 +27,16 @@ WebSocketsServer webSocket = WebSocketsServer(81);
 
 // Global alarm state for consistent hardware and web interface
 bool alarmActive = false;
+
+// Power optimization variables
+unsigned long lastSensorRead = 0;
+unsigned long lastWebSocketUpdate = 0;
+unsigned long lastDisplayUpdate = 0;
+unsigned long lastDistanceRead = 0;
+const unsigned long SENSOR_READ_INTERVAL = 2000;    // Read sensors every 2 seconds
+const unsigned long WEBSOCKET_UPDATE_INTERVAL = 1000; // WebSocket updates every 1 second
+const unsigned long DISPLAY_UPDATE_INTERVAL = 1000;   // Display updates every 1 second
+const unsigned long DISTANCE_READ_INTERVAL = 500;     // Distance checks every 500ms
 
 // Web server functions
 void handleRoot() {
@@ -113,8 +124,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 }
 
 void setupWiFi() {
+    // Optimize WiFi power settings
     WiFi.mode(WIFI_AP);
     WiFi.softAP(ssid, password);
+    
+    // Set WiFi power to maximum for stable connection
+    WiFi.setOutputPower(20.5); // Maximum power (20.5 dBm)
     
     Serial.println("WiFi Access Point Started");
     Serial.print("SSID: ");
@@ -149,7 +164,18 @@ void setupWiFi() {
 
 void setup() {
     Serial.begin(115200);
+    delay(5000);  // Wait longer for ESP8266 boot messages to finish
+    
+    // Clear any remaining boot messages
+    Serial.flush();
     delay(1000);
+    
+    // Clear the screen and start fresh
+    Serial.println("\n\n\n\n\n\n\n\n\n\n");
+    Serial.println("========================================");
+    Serial.println("=== L Spectra Guardian Starting ===");
+    Serial.println("ESP8266 NodeMCU Initialized");
+    Serial.println("========================================");
     
     // Initialize SPIFFS for web files
     if (!SPIFFS.begin()) {
@@ -184,41 +210,42 @@ void setup() {
 }
 
 void loop() {
-    tempSensor.readTemperature(); // Read and display temperature
-    mqSensor.readAirQuality(); // Read air quality
+    unsigned long currentTime = millis();
     
-    // Update LED blinking
+    // Read sensors at optimized intervals
+    if (currentTime - lastSensorRead > SENSOR_READ_INTERVAL) {
+        tempSensor.readTemperature();
+        mqSensor.readAirQuality();
+        lastSensorRead = currentTime;
+    }
+    
+    // Update LED blinking (non-blocking)
     led.update();
     
-    // Read distance less frequently for better reliability
-    static unsigned long lastDistanceRead = 0;
-    
-    if (millis() - lastDistanceRead > 500) { // Check every 500ms
+    // Read distance at optimized intervals
+    if (currentTime - lastDistanceRead > DISTANCE_READ_INTERVAL) {
         ultrasonicSensor.readDistance();
-        lastDistanceRead = millis();
+        lastDistanceRead = currentTime;
         
         // Check if object is too close and play alert sound
         if (ultrasonicSensor.isObjectTooClose()) {
             if (!alarmActive) {
-                led.on(); // Turn on LED first
-                buzzer.playAlert(); // Then play buzzer
+                led.on();
+                buzzer.playAlert();
                 alarmActive = true;
-                // Immediately broadcast alarm state change
                 sendSensorData(alarmActive);
             }
         } else {
             if (alarmActive) {
-                led.off(); // Turn off LED when alarm clears
+                led.off();
                 alarmActive = false;
-                // Immediately broadcast alarm state change
                 sendSensorData(alarmActive);
             }
         }
     }
     
-    // Update display with current sensor data
-    static unsigned long lastDisplayUpdate = 0;
-    if (millis() - lastDisplayUpdate > 1000) { // Update display every second
+    // Update display at optimized intervals
+    if (currentTime - lastDisplayUpdate > DISPLAY_UPDATE_INTERVAL) {
         display.updateDisplay(
             tempSensor.getTemperature(),
             tempSensor.getHumidity(),
@@ -226,24 +253,44 @@ void loop() {
             mqSensor.getAirQuality(),
             alarmActive
         );
-        lastDisplayUpdate = millis();
+        
+        // Print sensor values to serial monitor
+        Serial.println("========================================");
+        Serial.println("=== SENSOR READINGS ===");
+        Serial.print("Temperature: ");
+        Serial.print(tempSensor.getTemperature());
+        Serial.println(" °C");
+        Serial.print("Humidity: ");
+        Serial.print(tempSensor.getHumidity());
+        Serial.println(" %");
+        Serial.print("Air Quality: ");
+        Serial.print(mqSensor.getAirQuality());
+        Serial.println(" %");
+        Serial.print("Distance: ");
+        Serial.print(ultrasonicSensor.getDistance());
+        Serial.println(" cm");
+        Serial.print("Alarm Status: ");
+        Serial.println(alarmActive ? "ACTIVE" : "SAFE");
+        Serial.println("========================================");
+        
+        lastDisplayUpdate = currentTime;
     }
     
-    // Handle web server requests
+    // Handle web server requests (non-blocking)
     server.handleClient();
     
-    // Handle WebSocket events
+    // Handle WebSocket events (non-blocking)
     webSocket.loop();
     
-    // Handle mDNS requests
+    // Handle mDNS requests (non-blocking)
     MDNS.update();
     
-    // Broadcast sensor data via WebSocket every 500ms for real-time updates
-    static unsigned long lastWebSocketUpdate = 0;
-    if (millis() - lastWebSocketUpdate > 500) {
+    // Broadcast sensor data via WebSocket at optimized intervals
+    if (currentTime - lastWebSocketUpdate > WEBSOCKET_UPDATE_INTERVAL) {
         sendSensorData(alarmActive);
-        lastWebSocketUpdate = millis();
+        lastWebSocketUpdate = currentTime;
     }
     
-    delay(100); // Standard update interval
+    // Non-blocking delay - yield to other tasks
+    yield();
 }

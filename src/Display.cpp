@@ -12,15 +12,23 @@ void Display::begin() {
     
     if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
         Serial.println("SSD1306 allocation failed");
+        Serial.println("Check I2C connections: SCL=GPIO1(TX), SDA=GPIO3(RX)");
+        Serial.println("Try I2C address 0x3D if 0x3C doesn't work");
         return;
     }
     
     initialized = true;
+    Serial.println("OLED Display initialized successfully");
+    
     display.clearDisplay();
-    display.setTextSize(2);
+    display.setTextSize(1); // Smaller text for better fit
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(20, 20);
-    display.println("L SECTRA GUARDIAN");
+    display.setCursor(0, 10);
+    display.println("L SPECTRA GUARDIAN");
+    display.setCursor(0, 25);
+    display.println("IoT Monitoring");
+    display.setCursor(0, 40);
+    display.println("System Ready!");
     display.display();
     delay(2000);
 }
@@ -65,33 +73,46 @@ void Display::updateDisplay(float temperature, float humidity, float distance, f
     if (!initialized) return;
     
     display.clearDisplay();
-    display.setTextSize(2);
+    display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     
     // Temperature
-    display.setCursor(0, 1);
-    display.print("T:");
-    display.print(temperature);
-    display.println("C");
+    display.setCursor(0, 0);
+    display.print("Temp: ");
+    display.print(temperature, 1);
+    display.println(" C");
     
     // Humidity
-    display.setCursor(0, 21);
-    display.print("H:");
-    display.print(humidity);
-    display.println("%");
+    display.setCursor(0, 12);
+    display.print("Hum:  ");
+    display.print(humidity, 1);
+    display.println(" %");
     
     // Distance
-    // display.setCursor(0, 24);
-    // display.print("D:");
-    // display.print(distance);
-    // display.println("cm");
+    display.setCursor(0, 24);
+    display.print("Dist: ");
+    display.print(distance, 1);
+    display.println(" cm");
     
-    // Air Quality
-    display.setCursor(0, 41);
-    display.print("AQ:");
-    display.print(airQuality);
-    display.println("%");
+    // Air Quality with descriptive text
+    display.setCursor(0, 36);
+    display.print("Air: ");
+    if (airQuality >= 80) {
+        display.println("Excellent");
+    } else if (airQuality >= 60) {
+        display.println("Good");
+    } else if (airQuality >= 40) {
+        display.println("Fair");
+    } else if (airQuality >= 20) {
+        display.println("Poor");
+    } else {
+        display.println("Very Poor");
+    }
     
+    // Alarm Status
+    display.setCursor(0, 48);
+    display.print("Status: ");
+    display.println(alarm ? "ALERT!" : "SAFE");
     
     display.display();
 }

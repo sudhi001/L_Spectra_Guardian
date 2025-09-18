@@ -59,12 +59,16 @@ void handleRoot() {
         html += "<div class='sensor'><h3>HUM Humidity</h3><div class='value' id='hum'>--%</div></div>";
         html += "<div class='sensor'><h3>AIR Air Quality</h3><div class='value' id='aq'>--%</div></div>";
         html += "<div class='sensor'><h3>DIST Distance</h3><div class='value' id='dist'>--cm</div></div>";
+        html += "<div class='sensor'><h3>CO Level</h3><div class='value' id='co'>--ppm</div></div>";
+        html += "<div class='sensor'><h3>CO2 Level</h3><div class='value' id='co2'>--ppm</div></div>";
         html += "<div class='alert' id='alert'>Status: SAFE</div>";
         html += "<script>setInterval(()=>{fetch('/api/sensors').then(r=>r.json()).then(d=>{";
         html += "document.getElementById('temp').textContent=d.temperature.toFixed(1)+'C';";
         html += "document.getElementById('hum').textContent=d.humidity.toFixed(1)+'%';";
-        html += "document.getElementById('aq').textContent=d.airQuality.toFixed(1)+'%';";
+        html += "document.getElementById('aq').textContent=d.airQuality.toFixed(1)+'% ('+d.airQualityIndex+')';";
         html += "document.getElementById('dist').textContent=d.distance.toFixed(1)+'cm';";
+        html += "document.getElementById('co').textContent=d.coPPM.toFixed(1)+'ppm ('+d.coStatus+')';";
+        html += "document.getElementById('co2').textContent=d.co2PPM.toFixed(1)+'ppm ('+d.co2Status+')';";
         html += "document.getElementById('alert').textContent='Status: '+(d.alarm?'ALERT':'SAFE');";
         html += "document.getElementById('alert').style.background=d.alarm?'#ff6b6b':'#2ecc71';";
         html += "}).catch(e=>console.error(e));},2000);</script></div></body></html>";
@@ -73,11 +77,24 @@ void handleRoot() {
 }
 
 void handleAPI() {
+    float airQuality = mqSensor.getAirQuality();
+    String airQualityIndex = mqSensor.getAirQualityStatus();
+    
     String json = "{";
     json += "\"temperature\":" + String(tempSensor.getTemperature()) + ",";
     json += "\"humidity\":" + String(tempSensor.getHumidity()) + ",";
     json += "\"distance\":" + String(ultrasonicSensor.getDistance()) + ",";
-    json += "\"airQuality\":" + String(mqSensor.getAirQuality()) + ",";
+    json += "\"airQuality\":" + String(airQuality) + ",";
+    json += "\"airQualityIndex\":\"" + airQualityIndex + "\",";
+    json += "\"mqRawValue\":" + String(mqSensor.getRawValue()) + ",";
+    json += "\"mqVoltage\":" + String(mqSensor.getVoltage(), 3) + ",";
+    json += "\"mqResistance\":" + String(mqSensor.getResistance(), 0) + ",";
+    json += "\"mqResistanceRatio\":" + String(mqSensor.getResistanceRatio(), 2) + ",";
+    json += "\"coPPM\":" + String(mqSensor.getCOPPM(), 1) + ",";
+    json += "\"coStatus\":\"" + mqSensor.getCOStatus() + "\",";
+    json += "\"co2PPM\":" + String(mqSensor.getCO2PPM(), 1) + ",";
+    json += "\"co2Status\":\"" + mqSensor.getCO2Status() + "\",";
+    json += "\"mqCalibrated\":" + String(mqSensor.isCalibrated() ? "true" : "false") + ",";
     json += "\"alarm\":" + String(ultrasonicSensor.isObjectTooClose() ? "true" : "false");
     json += "}";
     
@@ -86,11 +103,24 @@ void handleAPI() {
 
 // Function to broadcast sensor data to all connected WebSocket clients
 void sendSensorData(bool alarmStatus) {
+    float airQuality = mqSensor.getAirQuality();
+    String airQualityIndex = mqSensor.getAirQualityStatus();
+    
     String json = "{";
     json += "\"temperature\":" + String(tempSensor.getTemperature()) + ",";
     json += "\"humidity\":" + String(tempSensor.getHumidity()) + ",";
     json += "\"distance\":" + String(ultrasonicSensor.getDistance()) + ",";
-    json += "\"airQuality\":" + String(mqSensor.getAirQuality()) + ",";
+    json += "\"airQuality\":" + String(airQuality) + ",";
+    json += "\"airQualityIndex\":\"" + airQualityIndex + "\",";
+    json += "\"mqRawValue\":" + String(mqSensor.getRawValue()) + ",";
+    json += "\"mqVoltage\":" + String(mqSensor.getVoltage(), 3) + ",";
+    json += "\"mqResistance\":" + String(mqSensor.getResistance(), 0) + ",";
+    json += "\"mqResistanceRatio\":" + String(mqSensor.getResistanceRatio(), 2) + ",";
+    json += "\"coPPM\":" + String(mqSensor.getCOPPM(), 1) + ",";
+    json += "\"coStatus\":\"" + mqSensor.getCOStatus() + "\",";
+    json += "\"co2PPM\":" + String(mqSensor.getCO2PPM(), 1) + ",";
+    json += "\"co2Status\":\"" + mqSensor.getCO2Status() + "\",";
+    json += "\"mqCalibrated\":" + String(mqSensor.isCalibrated() ? "true" : "false") + ",";
     json += "\"alarm\":" + String(alarmStatus ? "true" : "false");
     json += "}";
     
@@ -265,7 +295,9 @@ void loop() {
         Serial.println(" %");
         Serial.print("Air Quality: ");
         Serial.print(mqSensor.getAirQuality());
-        Serial.println(" %");
+        Serial.print(" % (");
+        Serial.print(mqSensor.getAirQualityStatus());
+        Serial.println(")");
         Serial.print("Distance: ");
         Serial.print(ultrasonicSensor.getDistance());
         Serial.println(" cm");
